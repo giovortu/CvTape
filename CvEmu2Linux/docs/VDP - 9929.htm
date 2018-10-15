@@ -1,0 +1,972 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta name="GENERATOR" content="Microsoft FrontPage 3.0">
+<title>VDP - Video Display Processor</title>
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+
+<p align="center"><small><font face="Arial,Helvetica"><img src="images/logo_svi_1.gif"
+alt="logo_svi_1.gif (2214 bytes)" width="389" height="70"><br>
+SVI-318, 328, 728</font></small></p>
+
+<h1><small><font face="Arial,Helvetica">VDP - Video Display Processor</font></small></h1>
+
+<h2><small><font face="Arial,Helvetica">Overview</font></small></h2>
+
+<p><small><font face="Arial,Helvetica">The VDP contains all the circuitry necessary to generate the
+video display. It appears to the Z80 as two I/O ports called the Data Port and the Command
+Port. Although the VDP has its own 16 KB of VRAM (Video RAM), the contents of which define
+the screen image, this cannot be directly accessed by the Z80. Instead it must use the two
+I/O ports to modify the VRAM and to set the various VDP operating conditions.<br>
+<br>
+The VDP in SVI-318, 328 and 728 is the Texas Instruments tms9918A or TMS9929A for PAL
+versions. The TMS-9929 is effectively identical to the tms9918 functionally and only has
+the color video section that is different.<br>
+<br>
+It has 16 colors, and four screen modes. The resolution is always 256 x 192. It also has a
+sprite system wich can control 32 sprites, with a maximum of four sprites on a single
+horizontal line. <br>
+<br>
+The following I/O ports are used to communicate with the VDP.</font></small></p>
+
+<table border="0" width="102%">
+  <tr>
+    <td align="center" width="9%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>SVI</small></font></td>
+    <td align="center" width="8%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>MSX</small></font></td>
+    <td align="center" width="10%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Read/Write</small></font></td>
+    <td width="163%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Description</small></font></td>
+  </tr>
+  <tr>
+    <td align="center" width="9%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">80H</font></small></td>
+    <td align="center" width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">98H</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">W</font></small></td>
+    <td width="163%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Data write</font></small></td>
+  </tr>
+  <tr>
+    <td align="center" width="9%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">81H</font></small></td>
+    <td align="center" width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">99H</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">W</font></small></td>
+    <td width="163%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Command write</font></small></td>
+  </tr>
+  <tr>
+    <td align="center" width="9%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">84H</font></small></td>
+    <td align="center" width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">98H</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">R</font></small></td>
+    <td width="163%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Data read</font></small></td>
+  </tr>
+  <tr>
+    <td align="center" width="9%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">85H</font></small></td>
+    <td align="center" width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">99H</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">R</font></small></td>
+    <td width="163%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Command read</font></small></td>
+  </tr>
+</table>
+
+<p><small><font face="Arial,Helvetica">The VDP uses a 10.738MHz crystal. It generates all required
+internatl clock signal. The CPU clock is supplied by the VDP and is obtained by dividing
+the 10.738MHz clock by 3.<br>
+</font></small></p>
+
+<h3><small><font face="Arial,Helvetica">Video Display Modes</font></small></h3>
+
+<p><small><font face="Arial,Helvetica">The VDP displays an image on the screen that can best be
+envisioned as a set of display planes sandwiched together. Objects on planes closest to
+the viewer have higher priority. In case where two entities on two different planes are
+occupying the same spot on the screen, the entity on the higher priority plane will show
+at that point. For an entity on a specific plane to show through, all planes in front of
+that plane must be transparent at that point. <br>
+<br>
+The first 32 planes each may contain a single sprite. (Sprites are pattern objects whose
+positions on the screen are defined by horizontal and vertical coordinates in VRAM) The
+areas of the Sprite Planes, outside of the sprite itself, are transparent. Since the
+coordinates of the sprite are in terms of pixels, the sprite can be sizes: 8 x 8 pixels,
+16 x 16 pixels and 32 x 32 pixels. <br>
+<br>
+Behind the Sprite Plane is the Pattern Plane. The Pattern Plane is used for textual and
+graphics images generated by the Text, Graphics I, Graphics II or Multicolor modes. <br>
+<br>
+Behind the Pattern Plane is the backdrop, wich is larger in area than the other planes so
+that it forms a border around the other planes. <br>
+<br>
+The last and lowest priority plane is the External Video Plane. Its image is defined by
+the external video input pin. The backdrop consists of a single color used for the display
+borders and as the default color for the active display area. The default color is stored
+in the VDP register 7. When the backdrop color register contains the transparent code, the
+backdrop automatically defaults to black if the external video mode is not selected.<br>
+<br>
+The 32 Sprite Planes are used for the 32 sprites in the Multicolor and Graphics modes.
+They are not used in the Text mode and are automatically transparent. Each of the sprites
+can cover a 8x8, 16x16 or 32x32 pixel area on its plane. Any part of the plane not covered
+by the sprite is transparent. All or part of each sprite may also be transparent. Sprite 0
+is on the outside or highest plane, and sprite 31 is on the plane immediately adjacent to
+Pattern Plane. Whenever a pixel in a Sprite Plane is transparent, the color of the next
+plane can be seen through that plane. If, however, the sprite pixel is non-transparent,
+the color of the lower planes are automatically replaced by the sprite color. <br>
+<br>
+There is also a restriction on the number of sprites on a line. Only four sprites can be
+active on any horizontal line. Additional sprites on a line will be automatically made
+transparent for that line. Only those sprites that are active on the display will cause
+the coincidence flag to set. The VDP status register provides a flag bit and the number of
+the fifth sprite whenever this occurs. <br>
+<br>
+The Pattern Plane is used in the Text, Multicolor, and Graphics modes for display of the
+graphic patterns of characters. Whenever a pixel on the Pattern Table is non-transparent,
+the backdrop color is automatically replaced by the Pattern Plane color. When a pixel in
+the Pattern Plane is transparent, the backdrop color can be seen through the Pattern
+Plane.<br>
+<br>
+The VDP has four video color display modes that appear on the Pattern Plane: Graphics I
+mode, Graphics II mode, Text mode and MultiColor mode. Graphics I and Graphics II modes
+cause the Pattern Plane to be broken up into groups of 8x8 pixels, called pattern
+positions. Since the full image is 256x192 pixels, there are 32x34 pattern positions on
+the screen in the graphics mode.<br>
+<br>
+In Graphics I mode, 256 possible patterns may be defined for the 768 pattern positions
+with two unique colors allowed for each pattern definition.<br>
+<br>
+Graphics II mode provides, through a unque mapping scheme, 768 pattern definations for the
+768 patterns positions. Graphics II mode also allows tge selection of two enique colors
+for each line of a pattern definition.&nbsp; Thus, all 15 colors plus transparent may be
+used in a single pattern position. <br>
+<br>
+In Text mode, the Pattern Plane is broken into groups of 6x8 pixels, called text
+positions. There are 40x24 text positions on the screen in this mode. In the Text mode,
+sprites do not appear on the screen and two colors are defined for the entire screen.<br>
+<br>
+In Multicolor mode, the screen is broken into a grid of 64x48 positions, each of which is
+a 4x4 pixel. Within each position, one unique color is allowed.<br>
+<br>
+The VDP registers define the base addresses for several sub-blocks within VRAM. The
+sub-blocks form tables which are used to produce the desired image on the screen. The
+Pattern Name Table, the Pattern Generator Table and the Sprite Generator Table are used to
+form the sprites. The contents of these tables must all be provided by the microprocessor.
+Animation is achieved by altering the contents of VRAM in real time.</font></small></p>
+
+<p>&nbsp;</p>
+
+<h3><small><font face="Arial,Helvetica">Data port</font></small></h3>
+
+<p><small><font face="Arial,Helvetica">The Data Port is used to read or write single bytes to the
+VRAM. The VDP possesses an internal address register pointing to a location in the VRAM.
+Reading the Data Port will input the byte from this VRAM location while writing to the
+Data Port will store a byte there. After a read or write the address register is
+automatically incremented to point to the next VRAM location. Sequential bytes can be
+accessed simply by continuous reads or writes to the Data Port.<br>
+</font></small></p>
+
+<h3><small><font face="Arial,Helvetica">Command port</font></small></h3>
+
+<p><small><font face="Arial,Helvetica">The Command Port is used for three purposes: </font></small>
+
+<ul>
+  <li><small><font face="Arial,Helvetica">To set up the Data Port address register.</font></small></li>
+  <li><small><font face="Arial,Helvetica">To read the VDP Status Register.</font></small></li>
+  <li><small><font face="Arial,Helvetica">To write to one of the VDP Registers.</font></small></li>
+</ul>
+
+<h3><small><font face="Arial,Helvetica"><br>
+Address Register</font></small></h3>
+
+<p><small><font face="Arial,Helvetica">The Data Port address register must be set up in different
+ways depending on whether the subsequent access is to be a read or a write. The address
+register can be set to any value from 0000H to 3FFFH by first writing the LSB (Least
+Significant Byte) and then the MSB (Most Significant Byte) to the Command Port. Bits 6 and
+7 of the MSB are used by the VDP to determine whether the address register is being set up
+for subsequent reads or writes as follows:<br>
+<br>
+Read ³ xxxxxxxx ³ 00xxxxxx ³<br>
+<br>
+Write ³ xxxxxxxx ³ 01xxxxxx ³<br>
+<br>
+It is important that no other accesses are made to the VDP in between writing the LSB and
+the MSB as this will upset its synchronization. The ROM interrupt handler is continuously
+reading the VDP Status Register as a background task so interrupts should be disabled as
+necessary.<br>
+</font></small></p>
+
+<h3><small><font face="Arial,Helvetica">VDP Status Register</font></small></h3>
+
+<p><small><font face="Arial,Helvetica">Reading the Command Port will input the contents of the VDP
+Status Register. This contains various flags as below:<br>
+</font></small></p>
+
+<pre><small><font face="Arial,Helvetica">
+7 6 5 4 3 2 1 0
+³ F ³ 5S ³ C ³ Fifth Sprite Number ³
+³Flag³Flag³Flag³ ³
+</font></small></pre>
+
+<p><small><font face="Arial,Helvetica"><br>
+The Fifth Sprite Number bits contain the number (0 to 31) of the sprite triggering the
+Fifth Sprite Flag.<br>
+<br>
+The Coincidence Flag is normally 0 but is set to 1 if any sprites have one or more
+overlapping pixels. Reading the Status Register will reset this flag to a 0. Note that
+coincidence is only checked as each pixel is generated during a video frame, on a PAL
+machine this is every 20 ms. If fast moving sprites pass over each other between checks
+then no coincidence will be flagged.<br>
+<br>
+The Fifth Sprite Flag is normally 0 but is set to 1 when there are more than four sprites
+on any pixel line. Reading the Status Register will reset this flag to a 0.<br>
+<br>
+The Frame Flag is normally 0 but is set to a 1 at the end of the last active line of the
+video frame. For PAL machines with a 50 Hz frame rate this will occur every 20 ms. Reading
+the Status register will reset this flag to a 0. There is an associated output signal from
+the VDP which generates Z80 interrupts at the same rate, this drives the ROM interrupt
+handler.<br>
+</font></small></p>
+
+<h3><small><font face="Arial,Helvetica">VDP Mode Registers</font></small></h3>
+
+<p><small><font face="Arial,Helvetica">The VDP has eight write-only registers, numbered 0 to 7,
+which control its general operation. A particular register is set by first writing a data
+byte then a register selection byte to the Command Port. The register selection byte
+contains the register number in the lower three bits: 10000RRR. As the Mode Registers are
+write-only, and cannot be read. In an MSX machine maintains the ROM an exact copy of the
+eight registers in the Workspace Area of RAM. Using the MSX ROM standard routines for VDP
+functions ensures that this register image is correctly updated.<br>
+</font></small></p>
+
+<h4><small><font face="Arial,Helvetica">Register 0</font></small></h4>
+
+<table border="0" width="100%">
+  <tr>
+    <td width="6%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Bit</small></font></td>
+    <td width="8%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Name</small></font></td>
+    <td width="86%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Description</small></font></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">EV</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">The External VDP bit
+    determines whether external VDP input is to be enabled or disabled: 0=Disabled, 1=Enabled.</font></small></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">1</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">M3</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">The M3 bit is one of the three
+    VDP mode selection bits, see Register 1.</font></small></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">2-7</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Not used</font></small></td>
+  </tr>
+</table>
+
+<p>&nbsp;</p>
+
+<h4><small><font face="Arial,Helvetica">Register 1</font></small></h4>
+
+<table border="0" width="100%">
+  <tr>
+    <td width="6%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Bit</small></font></td>
+    <td width="8%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Name</small></font></td>
+    <td width="86%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Description</small></font></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">MAG</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">The Magnification bit
+    determines whether sprites will be normal or doubled in size: 0=Normal, 1=Doubled.</font></small></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">1</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">SIZE</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">The Size bit determines
+    whether each sprite pattern will be 8x8 bits or 16x16 bits: 0=8x8, 1=16x16.</font></small></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">2</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Not used</font></small></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">3</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">M2</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">The M2 bit is one of the three
+    VDP mode selection bits, see Mode Register 1.</font></small></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">4</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">M1</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">The M1 bit is one of the three
+    VDP mode selection bits, see Mode Register 1.</font></small></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">5</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">IE</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">The Interrupt Enable bit
+    enables or disables the interrupt output signal from the VDP: 0=Disable, 1=Enable.</font></small></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">6</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Blank</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">The Blank bit is used to
+    enable or disable the entire video display: 0=Disable, 1=Enable. When the display is
+    blanked it will be the same Color as the border.</font></small></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">7</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">4/16K</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">The 4/16K bit alters the VDP
+    VRAM addressing characteristics to suit either 4 KB or 16 KB chips: 0=4 KB, 1=16 KB.</font></small></td>
+  </tr>
+</table>
+
+<p><small><font face="Arial,Helvetica">The M1 and M2 bits determine the VDP operating mode in
+conjunction with the M3 bit from Register 0.</font></small></p>
+
+<table border="0" width="109%">
+  <tr>
+    <td width="4%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>M1</small></font></td>
+    <td width="4%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>M2</small></font></td>
+    <td width="4%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>M3</small></font></td>
+    <td width="30%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Description</small></font></td>
+    <td width="8%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Characters</small></font></td>
+    <td width="9%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Pixels</small></font></td>
+    <td width="9%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Colors</small></font></td>
+    <td width="9%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Sprites</small></font></td>
+    <td width="35%" bgcolor="#808080"></td>
+  </tr>
+  <tr>
+    <td width="4%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td width="4%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td width="4%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td width="30%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Text mode (not available on
+    SV-328/318)</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">32 x 24</font></small></td>
+    <td width="9%" bgcolor="#C0C0C0"></td>
+    <td width="9%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">16</font></small></td>
+    <td width="9%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Yes</font></small></td>
+    <td width="35%" bgcolor="#C0C0C0"></td>
+  </tr>
+  <tr>
+    <td width="4%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td width="4%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td width="4%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">1</font></small></td>
+    <td width="30%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Graphics mode</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"></td>
+    <td width="9%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">256 x 192</font></small></td>
+    <td width="9%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">16</font></small></td>
+    <td width="9%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Yes</font></small></td>
+    <td width="35%" bgcolor="#C0C0C0"></td>
+  </tr>
+  <tr>
+    <td width="4%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td width="4%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">1</font></small></td>
+    <td width="4%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td width="30%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Multicolor mode</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"></td>
+    <td width="9%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">64 x 48</font></small></td>
+    <td width="9%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">16</font></small></td>
+    <td width="9%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Yes</font></small></td>
+    <td width="35%" bgcolor="#C0C0C0"></td>
+  </tr>
+  <tr>
+    <td width="4%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">1</font></small></td>
+    <td width="4%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td width="4%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td width="30%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Text mode</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">40 x 24</font></small></td>
+    <td width="9%" bgcolor="#C0C0C0"></td>
+    <td width="9%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">2</font></small></td>
+    <td width="9%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">No</font></small></td>
+    <td width="35%" bgcolor="#C0C0C0"></td>
+  </tr>
+</table>
+
+<p>&nbsp;</p>
+
+<h4><small><font face="Arial,Helvetica">Register 2</font></small></h4>
+
+<table border="0" width="100%">
+  <tr>
+    <td width="6%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Bit</small></font></td>
+    <td width="8%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Name</small></font></td>
+    <td width="86%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Description</small></font></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0-4</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">PN</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Name Table base address</font></small></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">5-7</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Not used</font></small></td>
+  </tr>
+</table>
+
+<p><small><font face="Arial,Helvetica">Register 2 defines the starting address of the Name Table in
+the VDP VRAM. The four available bits only specify positions 00BB BB00 0000 0000 of the
+full address so register contents of 0FH would result in a base address of 3C00H.<br>
+<br>
+This register contains bits 13 through 10 of the pattern name table. You can calculate the
+pattern name table address by multiplying the value of this register by 400H (1024). <br>
+</font></small></p>
+
+<h4><small><font face="Arial,Helvetica">Register 3</font></small></h4>
+
+<table border="0" width="100%">
+  <tr>
+    <td width="6%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Bit</small></font></td>
+    <td width="8%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Name</small></font></td>
+    <td width="86%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Description</small></font></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0-7</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">CT</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Color Table base address</font></small></td>
+  </tr>
+</table>
+
+<p><small><font face="Arial,Helvetica">Register 3 defines the starting address of the Color Table in
+the VDP VRAM. The eight available bits only specify positions 00BB BBBB BB00 0000 of the
+full address so register contents of FFH would result in a base address of 3FC0H. In
+Graphics Mode only bit 7 is effective thus offering a base of 0000H or 2000H. Bits 0 to 6
+must be 1.<br>
+<br>
+This register contain bits 13 through 6 of the pattern Color table. You can calculate the
+pattern Color table address by multiplying the value of this register by 40h (64). In
+screen mode 2, this register has a different function. <br>
+</font></small></p>
+
+<h4><small><font face="Arial,Helvetica">Register 4</font></small></h4>
+
+<table border="0" width="100%">
+  <tr>
+    <td width="6%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Bit</small></font></td>
+    <td width="8%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Name</small></font></td>
+    <td width="86%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Description</small></font></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0-2</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">PG</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Pattern Generator (Character
+    Pattern)</font></small></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">3-7</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Not used</font></small></td>
+  </tr>
+</table>
+
+<p><small><font face="Arial,Helvetica">Register 4 defines the starting address of the Character
+Pattern Table in the VDP VRAM. The three available bits only specify positions 00BB B000
+0000 0000 of the full address so register contents of 07H would result in a base address
+of 3800H. In Graphics Mode only bit 2 is effective thus offering a base of 0000H or 2000H.
+Bits 0 and 1 must be 1.<br>
+<br>
+This register contain bits 13 through 11 of the pattern generator table. You can calculate
+the pattern table address by multiplying the value of this register by 200H (512). In
+screen mode 2, this register has a different function. <br>
+</font></small></p>
+
+<h4><small><font face="Arial,Helvetica">Register 5</font></small></h4>
+
+<table border="0" width="100%">
+  <tr>
+    <td width="6%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Bit</small></font></td>
+    <td width="8%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Name</small></font></td>
+    <td width="86%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Description</small></font></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0-6</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">SA</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Sprite Attribute Table base
+    address</font></small></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">7</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Not used</font></small></td>
+  </tr>
+</table>
+
+<p><small><font face="Arial,Helvetica">Register 5 defines the starting address of the Sprite
+Attribute Table in the VDP VRAM. The seven available bits only specify positions 00BB BBBB
+B000 0000 of the full address so register contents of 7FH would result in a base address
+of 3F80H.<br>
+<br>
+This register contain bits 13 through 7 of the sprite attribute table. You can calculate
+the sprite attribute table address by multiplying the value of this register by 80H (128).
+<br>
+</font></small></p>
+
+<h4><small><font face="Arial,Helvetica">Register 6</font></small></h4>
+
+<table border="0" width="100%">
+  <tr>
+    <td width="6%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Bit</small></font></td>
+    <td width="8%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Name</small></font></td>
+    <td width="86%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Description</small></font></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0-2</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">SG</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Sprite Pattern Generator base
+    address</font></small></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">3-7</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Not used</font></small></td>
+  </tr>
+</table>
+
+<p><small><font face="Arial,Helvetica">Register 6 defines the starting address of the Sprite Pattern
+Table in the VDP VRAM. The three available bits only specify positions 00BB B000 0000 0000
+of the full address so register contents of 07H would result in a base address of 3800H.<br>
+<br>
+This register contain bits 13 through 11 of the sprite pattern generator table. You can
+calculate the sprite pattern table address by multiplying the value of this register by
+200h (512). <br>
+</font></small></p>
+
+<h4><small><font face="Arial,Helvetica">Register 7</font></small></h4>
+
+<table border="0" width="100%">
+  <tr>
+    <td width="6%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Bit</small></font></td>
+    <td width="8%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Name</small></font></td>
+    <td width="86%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Description</small></font></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0-3</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">BD</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Backdrop. Color number of
+    color around screen, and color 0.</font></small></td>
+  </tr>
+  <tr>
+    <td width="6%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">4-7</font></small></td>
+    <td width="8%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">TC</font></small></td>
+    <td width="86%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Text color. Color of text in
+    screen mode 0. </font></small></td>
+  </tr>
+</table>
+
+<p><font face="Arial,Helvetica"><small>The Border Color bits determine the Color of the region
+surrounding the active video area in all four VDP modes. They also determine the Color of
+all 0 pixels on the screen in 40x24 Text Mode. Note that the border region actually
+extends across the entire screen but will only become visible in the active area if the
+overlying pixel is transparent.<br>
+<br>
+The Text Color 1 bits determine the Color of all 1 pixels in 40x24 Text Mode. They have no
+effect in the other three modes where greater flexibility is provided through the use of
+the Color Table. The VDP Color codes are:<br>
+</small><br>
+<img src="images/vdp_colors.gif" width="181" height="177"
+alt="vdp_colors.gif (2853 bytes)"><small><br>
+</small></font></p>
+
+<pre>0 Transparent	4 Dark Blue	 8 Red		12 Dark Green
+1 Black 	5 Light Blue	 9 Bright Red	13 Magenta
+2 Green		6 Dark Red	10 Yellow	14 Grey
+3 Light Green	7 Cyan		11 Light Yellow 15 White
+
+</pre>
+
+<h3><small><font face="Arial,Helvetica">Screen Modes</font></small></h3>
+
+<p><small><font face="Arial,Helvetica">The VDP has four operating modes, each one offering a
+slightly different set of capabilities. The Graphics Mode is capable of adequately
+performing all the functions of the other modes with only minor reservations.<br>
+<br>
+An added difficulty in using the VDP arises because insufficient allowance was made in its
+design for the overscanning used by most televisions. The resulting loss of<br>
+characters at the screen edges has forced all the video-related MSX software into being
+based on peculiar screen sizes. PAL machines normally use only the central thirty-seven
+characters available in 40x24 Text Mode. Japanese machines, with NTSC (National Television
+Standards Committee) video outputs, use the<br>
+central thirty-nine characters.<br>
+<br>
+The central element in the VDP, from the programmer's point of view, is the Name Table.
+This is a simple list of single- byte character codes held in VRAM. It is 960 bytes long
+in 40x24 Text Mode, 768 bytes long in 32x24 Text Mode, Graphics Mode and MultiColor Mode.
+Each position in the Name Table corresponds to a particular location on the screen.<br>
+<br>
+During a video frame the VDP will sequentially read every character code from the Name
+Table, starting at the base. As each character code is read the corresponding 8x8 pattern
+of pixels is looked up in the Character Pattern Table and displayed on the screen. The
+appearance of the screen can thus<br>
+be modified by either changing the character codes in the Name Table or the pixel patterns
+in the Character Pattern Table.<br>
+<br>
+Note that the VDP has no hardware cursor facility, if one is required it must be software
+generated.<br>
+</font></small></p>
+
+<h3><small><font face="Arial,Helvetica">Communication with VRAM</font></small></h3>
+
+<p><small><font face="Arial,Helvetica">You must use an internal register in the VDP to read or write
+data. This register is used as adressregister, and decides where data will be written or
+read. Because the VDP can adress 16KB VRAM, the register is 14 bits (2 * 14 = 16384). To
+set the read/write address, write it to port 1 (I/O port 99h on the MSX and 81h for
+SVI-328). You must write two bytes (totaly 16 bits) to the VDP. The extra 2 bits are used
+to decide if it's a read or write operation to VRAM, and also if it's a register write. <br>
+</font></small></p>
+
+<h2><small><font face="Arial,Helvetica">Registers Overview</font></small></h2>
+
+<table border="0" cellspacing="0" width="90%">
+  <tr>
+    <th width="10%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>Reg.</small></font></th>
+    <th width="10%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>bit 7</small></font></th>
+    <th width="10%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>bit 6</small></font></th>
+    <th width="10%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>bit 5</small></font></th>
+    <th width="10%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>bit 4</small></font></th>
+    <th width="10%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>bit 3</small></font></th>
+    <th width="10%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>bit 2</small></font></th>
+    <th width="10%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>bit 1</small></font></th>
+    <th width="10%" bgcolor="#808080"><font face="Arial,Helvetica" color="#FFFFFF"><small>bit 0</small></font></th>
+  </tr>
+  <tr>
+    <th width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">0</font></small></th>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Mode 2</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">B/W</font></small></td>
+  </tr>
+  <tr>
+    <th width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">1</font></small></th>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">blank</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">INT</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Mode 1</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">Mode 3</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">SI</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">MAG</font></small></td>
+  </tr>
+  <tr>
+    <th width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">2</font></small></th>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">PN<sub>13</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">PN<sub>12</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">PN<sub>11</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">PN<sub>10</sub></font></small></td>
+  </tr>
+  <tr>
+    <th width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">3</font></small></th>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">CT<sub>13</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">CT<sub>12</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">CT<sub>11</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">CT<sub>10</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">CT<sub>9</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">CT<sub>8</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">CT<sub>7</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">CT<sub>6</sub></font></small></td>
+  </tr>
+  <tr>
+    <th width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">4</font></small></th>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">PG<sub>13</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">PG<sub>12</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">PG<sub>11</sub></font></small></td>
+  </tr>
+  <tr>
+    <th width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">5</font></small></th>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">SA<sub>13</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">SA<sub>12</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">SA<sub>11</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">SA<sub>10</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">SA<sub>9</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">SA<sub>8</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">SA<sub>7</sub></font></small></td>
+  </tr>
+  <tr>
+    <th width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">6</font></small></th>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">(none)</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">SG<sub>13</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">SG<sub>12</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">SG<sub>11</sub></font></small></td>
+  </tr>
+  <tr>
+    <th width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">7</font></small></th>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">TC<sub>3</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">TC<sub>3</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">TC<sub>2</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">TC<sub>0</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">BD<sub>3</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">BD<sub>2</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">BD<sub>1</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">BD<sub>0</sub></font></small></td>
+  </tr>
+  <tr>
+    <th width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">8</font></small></th>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">INT</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">5S</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">C</font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">FS<sub>4</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">FS<sub>3</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">FS<sub>2</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">FS<sub>1</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#C0C0C0"><small><font face="Arial,Helvetica">FS<sub>0</sub></font></small></td>
+  </tr>
+</table>
+
+<p><small><font face="Arial,Helvetica">Registers 0 through 7 can only be written to, while register
+8 can only be read. <br>
+</font></small></p>
+
+<h3><small><font face="Arial,Helvetica">Register 8</font></small></h3>
+
+<p><small><font face="Arial,Helvetica">This is the status register. </font></small>
+
+<dl>
+  <dt><small><font face="Arial,Helvetica">INT </font></small></dt>
+  <dd><small><font face="Arial,Helvetica">This bit is high when the VDP is requesting a INT of the Z80.
+    This bit is reset after when this register is read. This will also stop the INT request
+    (otherwise the Z80 will only process interrupts). </font></small></dd>
+  <dt><small><font face="Arial,Helvetica">5S </font></small></dt>
+  <dd><small><font face="Arial,Helvetica">High if somewhere an illegal sprite (=fifth sprite on a line)
+    occurred. </font></small></dd>
+  <dt><small><font face="Arial,Helvetica">C </font></small></dt>
+  <dd><small><font face="Arial,Helvetica">High if a sprite collision (=overlapped sprites) occurred. </font></small></dd>
+  <dt><small><font face="Arial,Helvetica">FS </font></small></dt>
+  <dd><small><font face="Arial,Helvetica">fifth sprite number. Sprite attribute table number of first
+    illegal sprite. Only valid of 5S is set. <br>
+    </font></small></dd>
+</dl>
+
+<h2><small><font face="Arial,Helvetica">Screen modes</font></small></h2>
+
+<p><small><font face="Arial,Helvetica">There are four screen modes. <br>
+</font></small></p>
+
+<h3><small><font face="Arial,Helvetica">Screen Mode 0</font></small></h3>
+
+<p><small><font face="Arial,Helvetica">In this text mode, the sprite system is disabled. Also, the
+pattern Color table is not used. </font></small></p>
+
+<p><small><font face="Arial,Helvetica">Patterns are area of 6 x 8 pixels. There are 256 patterns
+stored in the pattern table. Each pattern consists of 8 bytes. The last two bits of each
+byte are ignored. </font></small></p>
+
+<p><small><font face="Arial,Helvetica">The screen has 40 x 24 entries. The resolution is (40 * 6 =
+240) x (24 * 8 = 192) pixels. Thus, the pattern name table contains 40 x 24 = 960 bytes.
+The first byte of the pattern name table is the name (=pattern number) of the top left
+pattern, the second the one the one on the left of it. To calculate the address in VRAM of
+the pattern, use this formula: </font></small></p>
+
+<p><small><font face="Arial,Helvetica">address = pattern generator table address + 8 * pattern name </font></small></p>
+
+<p><small><font face="Arial,Helvetica">The screen has the Color of the backdrop (BD in register 7),
+and the text of the text Color (TC in register 7). <br>
+</font></small></p>
+
+<h3><small><font face="Arial,Helvetica">Screen Mode 1</font></small></h3>
+
+<p><small><font face="Arial,Helvetica">In this text mode, the sprite system is active. All the
+tables are used. </font></small></p>
+
+<p><small><font face="Arial,Helvetica">The full length of the pattern bytes are used (8 x 8 pixels).
+Each pattern has a thingy. <br>
+</font></small></p>
+
+<h2><small><font face="Arial,Helvetica">Sprites<br>
+</font></small></h2>
+
+<h2><small><font face="Arial,Helvetica">Controlling the VDP</font></small></h2>
+
+<p><small><font face="Arial,Helvetica">The VDP is controlled through 2 I/O ports, which both can be
+read and written to. <br>
+</font></small></p>
+
+<h3><small><font face="Arial,Helvetica">Writing / reading VRAM</font></small></h3>
+
+<p><small><font face="Arial,Helvetica">Dispite what the manuals say, there is only <i>one</i>
+address the VDP uses for reading and writing.</font></small></p>
+
+<p><small><font face="Arial,Helvetica">To set the read/write address, write it to port 1 (I/O port
+99h on the MSX). You must write two bytes: </font></small></p>
+
+<table border="1" cellspacing="0" width="90%">
+  <tr>
+    <th width="10%"><small><font face="Arial,Helvetica">byte</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 7</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 6</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 5</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 4</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 3</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 2</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 1</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 0</font></small></th>
+  </tr>
+  <tr>
+    <th width="10%"><small><font face="Arial,Helvetica">first</font></small></th>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">A<sub>7</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">A<sub>6</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">A<sub>5</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">A<sub>4</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">A<sub>3</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">A<sub>2</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">A<sub>1</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">A<sub>0</sub></font></small></td>
+  </tr>
+  <tr>
+    <th width="10%"><small><font face="Arial,Helvetica">second</font></small></th>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">Read/Write</font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">A<sub>13</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">A<sub>12</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">A<sub>11</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">A<sub>10</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">A<sub>9</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">A<sub>8</sub></font></small></td>
+  </tr>
+</table>
+
+<p><small><font face="Arial,Helvetica">What happens next depends on bit 6 of the second byte: </font></small></p>
+
+<table border="1" cellspacing="0" width="90%">
+  <tr>
+    <th><small><font face="Arial,Helvetica">bit 6</font></small></th>
+    <th><small><font face="Arial,Helvetica">effect</font></small></th>
+  </tr>
+  <tr>
+    <td><small><font face="Arial,Helvetica">0 (Read)</font></small></td>
+    <td bgcolor="#808080"><small><font face="Arial,Helvetica">Read ahead the byte from VRAM address
+    specified, increase the address and set</font></small></td>
+  </tr>
+  <tr>
+    <td><small><font face="Arial,Helvetica">1 (Write)</font></small></td>
+    <td bgcolor="#808080"><small><font face="Arial,Helvetica">Set the address to the one specified</font></small></td>
+  </tr>
+</table>
+
+<p><small><font face="Arial,Helvetica">Now you can read and write data to and from the VRAM by
+reading and writing to port 0 (I/O port 98h on the MSX) </font></small></p>
+
+<table border="1" cellspacing="0" width="90%">
+  <tr>
+    <th><small><font face="Arial,Helvetica">Action Port 0</font></small></th>
+    <th><small><font face="Arial,Helvetica">Effect</font></small></th>
+  </tr>
+  <tr>
+    <td><small><font face="Arial,Helvetica">Read</font></small></td>
+    <td bgcolor="#808080"><small><font face="Arial,Helvetica">Return read-ahead value, increase address
+    and read ahead again</font></small></td>
+  </tr>
+  <tr>
+    <td><small><font face="Arial,Helvetica">Write</font></small></td>
+    <td bgcolor="#808080"><small><font face="Arial,Helvetica">Write given value to address and increase
+    it</font></small></td>
+  </tr>
+</table>
+
+<p><small><font face="Arial,Helvetica">Note that the address raps around at beyond 3FFFh to 0. <br>
+</font></small></p>
+
+<h3><small><font face="Arial,Helvetica">Writing / reading registers</font></small></h3>
+
+<p><small><font face="Arial,Helvetica">If you read port 1 (I/O port 99h), you'll get the value of
+register 8. </font></small></p>
+
+<p><small><font face="Arial,Helvetica">To write to a register, write the following values to port 1
+(I/O port 99h): </font></small></p>
+
+<table border="1" cellspacing="0" width="90%">
+  <tr>
+    <th width="10%"><small><font face="Arial,Helvetica">byte</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 7</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 6</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 5</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 4</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 3</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 2</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 1</font></small></th>
+    <th width="10%"><small><font face="Arial,Helvetica">bit 0</font></small></th>
+  </tr>
+  <tr>
+    <th width="10%"><small><font face="Arial,Helvetica">first</font></small></th>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">V<sub>7</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">V<sub>6</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">V<sub>5</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">V<sub>4</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">V<sub>3</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">V<sub>2</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">V<sub>1</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">V<sub>0</sub></font></small></td>
+  </tr>
+  <tr>
+    <th width="10%"><small><font face="Arial,Helvetica">second</font></small></th>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">1</font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">0</font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">R<sub>2</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">R<sub>1</sub></font></small></td>
+    <td align="center" width="10%" bgcolor="#808080"><small><font face="Arial,Helvetica">R<sub>0</sub></font></small></td>
+  </tr>
+</table>
+
+<p><small><font face="Arial,Helvetica">Where V is the value and R the register. Actually, when bit 7
+of the second byte is high, bit 6 through bit 3 are ignored. </font></small></p>
+
+<p><small><font face="Arial,Helvetica">Please note that to maintain compatibility with the V9938 and
+V9958, you must set all the unused/ignored bits to zero in the register values and in the
+second byte. <br>
+</font></small></p>
+
+<h3><small><font face="Arial,Helvetica">Pairing Problems</font></small></h3>
+
+<p><small><font face="Arial,Helvetica">As you've probably seem, when you write to port 1, you always
+do it in packets of two bytes. <br>
+But what happens if an interrupt occurs in your program, when you've written the first
+byte but not the second ? If the interrupt program attempts to change an register or
+something like that, it'll surely screw things up. That's why you must always disable
+interrupts before writing your data to port 1. </font></small></p>
+
+<p><small><font face="Arial,Helvetica">Another weird phoneme is this: when you're in MSX BASIC, type
+the following: </font></small></p>
+
+<pre><small><font face="Arial,Helvetica">
+OUT (&amp;H99),0
+</font></small></pre>
+
+<p><small><font face="Arial,Helvetica">You'd expect things to be screwed up severely, but it doesn't
+happen. What does ? </font></small></p>
+
+<p><small><font face="Arial,Helvetica">I have found the following explanation: The VDP has a flag
+which is low if it is expecting a first byte of a packet, and high when its expecting the
+second byte.<br>
+But every time <i>any</i> VDP port is read or written to, the flag is reset. (except, of
+course, when it's a packet written to port 1.) <br>
+</font></small></p>
+
+<h2><small><font face="Arial,Helvetica">Interrupts</font></small></h2>
+
+<p><small><font face="Arial,Helvetica">The VDP provides the only interrupt in the MSX system. It is
+issued every time the screen is sent to the TV. (that is, 50Hz on a European machine (PAL)
+and 60Hz on any reasonable machine (NTSC). </font></small></p>
+
+<p><small><font face="Arial,Helvetica">I have found the following rules: </font></small>
+
+<ol>
+  <li><small><font face="Arial,Helvetica">Bit 7 of register 8 gets set at the end of the display of the
+    screen; After the last line of the screen is displayed, before the bottom border. </font></small></li>
+  <li><small><font face="Arial,Helvetica">Bit 7 of register 8 can be reset by reading register 8. The
+    bit is reset after reading it. </font><

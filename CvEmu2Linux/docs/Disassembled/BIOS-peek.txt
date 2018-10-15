@@ -1,0 +1,5 @@
+i caratteri stanno nelle locazioni: 63585-63615 (11 caratteri)
+
+i bytes dei pixels dei caratteri stanno su: 63696-63751 e 63960-63999 (88 bytes)
+
+200,0,1,208,209,47,6,219,220,192,192

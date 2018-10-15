@@ -1,0 +1,545 @@
+<HTML>
+
+<HEAD>
+<TITLE>EMULib by Marat Fayzullin</TITLE>
+</HEAD>
+
+<BODY BGCOLOR="#FFFFFF" LINK="#006000" ALINK="#006000" VLINK="#006000">
+<CENTER>
+<FONT COLOR="#FF0000">
+<H1>EMULib</H1>
+</FONT>
+by <A HREF="http://www.komkon.org/fms/">Marat Fayzullin</A>
+</CENTER>
+<HR>
+
+<H2>What is EMULib?</H2>
+  <I>EMULib</I> is a set of C library modules which I wrote to use in
+computer emulators. Some of this modules emulate various computer chips.
+Others are used to play sound, handle data files, and work with hardware.
+<I>EMULib</I> is available from
+<P>
+<CENTER>
+<A HREF="http://www.komkon.org/fms/EMUL8/">
+http://www.komkon.org/fms/EMUL8/
+</A>
+</CENTER>
+<P>
+Be aware that <I>EMULib</I> is a work in progress. Every now and then I
+add new modules and extend existing ones. Documentation is incomplete
+and may not always be up to date. In this situation, the header files
+are your best friends. Check them out for fresh information on the
+libraries.
+<P>
+
+<H2>Copyright Notice</H2>
+  Both <I>EMULib</I> source code and documentation are copyrighted by me,
+<A HREF="http://www.komkon.org/fms/">Marat Fayzullin</A>. Following
+restrictions apply to these materials:
+<UL>
+<LI>You <U>can use</U> this software <U>for any non-profit purposes</U>
+    as long as you make a proper reference to me.
+<LI>You <U>cannot use</U> this software <U>to gain any kind of profit</U>.
+    This includes putting the software onto CDROMs, using it or its
+    parts in your own commercial or shareware projects, and so on.
+<LI>You <U>cannot distribute</U> this software <U>yourself</U>, even if it
+    is not done for profit. Do not put it to any WWW or FTP sites of your
+    own, make a link to my site instead. It is fine to have it as a part
+    of a freeware project, such as emulator or utility program, as long as
+    you make a reference to me in the documentation or the program itself.
+</UL>
+<P>
+
+<H2>How To Use EMULib?</H2>
+  Following chapters will cover various <I>EMULib</I> modules:
+<UL>
+<LI><A HREF="#LABE">Library for Handling GameBoy Cartridges (.GB)</A>
+<LI><A HREF="#LABB">Library for Handling NES/Famicom Cartridges (.NES)</A>
+<LI><A HREF="#LABL">Library for Handling SEGA 8Bit Cartridges (.SMS/.GG)</A>
+<LI><A HREF="#LABM">Library for Handling GameBoy Advance Cartridges (.GBA)</A>
+<P>
+<LI><A HREF="#LABD">Sound Playback and MIDI Logging Library</A>
+<P>
+<LI><A HREF="#LABK">8255 Programmable Parallel Interface</A>
+<LI><A HREF="#LABN">93cXX EEPROM with Serial Access</A>
+<LI><A HREF="#LABA">SN76489 Programmable Sound Generator</A>
+<LI><A HREF="#LABI">AY8910/8912 Programmable Sound Generator</A>
+<LI><A HREF="#LABJ">YM2413 Programmable Sound Generator</A>
+<LI><A HREF="#LABC">tms9918/9928 Video Processor</A>
+<P>
+<LI><A HREF="#LABF">Miscellaneous Functions for MSDOS</A>
+<LI><A HREF="#LABG">Miscellaneous Functions for Unix</A>
+<LI><A HREF="#LABH">Miscellaneous Functions for Windows</A>
+</UL>
+<HR>
+
+<A NAME="LABE"></A>
+<H2>Library for Handling GameBoy Cartridges (.GB)</H2>
+<FONT COLOR="#000080"><H3><TT>
+<U>GBCarts.h</U> GBCarts.c
+</FONT></TT></H3>
+<CENTER><H6>
+GameBoy, Super GameBoy, GameBoy Color, and Pocket Camera are all
+trademarks of Nintendo.
+</H6></CENTER>
+<P>
+  The <I>GBCarts</I> library included into <I>EMULib</I> allows to
+verify ROM images of GameBoy cartridges (.GB) and obtain various
+information about the cartridge hardware and software. Some of the
+library functionality is provided through functions in
+<CODE>GBCarts.c</CODE>, while the rest is implemented with macros
+in <CODE>GBCarts.h</CODE>.
+<P>
+  GameBoy ROMs contain all the useful information about the cartridge
+in the first 512 bytes of the ROM also called the <U>"header"</U>. To
+use the <I>GBCarts</I> library, you will have to load this header into
+memory and pass its address to the library functions.
+<P>
+  Some functions, such as <CODE>GB_RealCRC()</CODE>, work on the entire
+contents of the ROM. For such functions, you will have to load entire
+ROM into memory and pass its address.
+<P>
+  The <I>GBCarts</I> functions are divided into several groups:
+<UL>
+<LI>Cartridge ROM/RAM Size
+<FONT COLOR="#000080"><PRE>
+GB_RAMSize(Header)   - Size of the cartridge RAM in bytes
+GB_ROMSize(Header)   - Size of the cartridge ROM in bytes
+GB_ROMBanks(Header)  - Size of the cartridge ROM in 16kB banks
+</PRE></FONT>
+<LI>ROM Verification
+<FONT COLOR="#000080"><PRE>
+GB_ValidType(Header) - TRUE if the cartridge type is valid
+GB_CRC(Header)       - Control sum stored in the header
+GB_CMP(Header)       - Complement byte stored in the header
+GB_RealCRC(ROM)      - Real (computed) ROM control sum
+GB_RealCMP(Header)   - Real (computed) complement byte
+</PRE></FONT>
+<LI>Hardware Properties
+<FONT COLOR="#000080"><PRE>
+GB_TypeID(Header)    - Cartridge type ID
+GB_Type(Header)      - Description of cartridge hardware as a string
+GB_MBC1(Header)      - TRUE if the cartridge contains MBC1 chip 
+GB_MBC2(Header)      - TRUE if the cartridge contains MBC2 chip 
+GB_MBC3(Header)      - TRUE if the cartridge contains MBC3 chip 
+GB_MBC4(Header)      - TRUE if the cartridge contains MBC4 chip
+GB_MBC5(Header)      - TRUE if the cartridge contains MBC5 chip 
+GB_HuC1(Header)      - TRUE if the cartridge contains Hudson HuC-1 chip 
+GB_HuC3(Header)      - TRUE if the cartridge contains Hudson HuC-3 chip 
+GB_MMM01(Header)     - TRUE if the cartridge contains MMM-01 chip 
+GB_Camera(Header)    - TRUE for Nintendo Pocket Camera
+GB_Battery(Header)   - TRUE if the cartridge contains a battery
+GB_Timer(Header)     - TRUE if the cartridge contains a real-time timer
+GB_Rumble(Header)    - TRUE if the cartridge contains a rumble pack
+</PRE></FONT>
+<LI>Software Properties
+<FONT COLOR="#000080"><PRE>
+GB_Name(Header)      - Software name as a string
+GB_MakerID(Header)   - Software producer ID
+GB_Maker(Header)     - Producer name as a string, if known
+GB_Version(Header)   - Software revision
+GB_ColorGB(Header)   - TRUE if software supports GameBoy Color
+GB_SuperGB(Header)   - TRUE if software supports Super GameBoy
+GB_Japanese(Header)  - TRUE if software is produced for Japanese market
+GB_Developer(Header) - TRUE if this is a developer version
+GB_OnlyColor(Header) - TRUE if software works only on GameBoy Color
+GB_WithColor(Header) - TRUE if software is enchanced for GameBoy Color
+</PRE></FONT>
+</UL>
+<HR>
+
+<A NAME="LABB"></A>
+<H2>Library for Handling NES/Famicom Cartridges (.NES)</H2>
+<FONT COLOR="#000080"><H3><TT>
+<U>NESCarts.h</U> NESCarts.c
+</FONT></TT></H3>
+<CENTER><H6>
+Nintendo Entertainment System, VS-System, and Famicom are all trademarks
+of Nintendo.
+</H6></CENTER>
+<P>
+  The <I>NESCarts</I> library included into <I>EMULib</I> allows to
+obtain hardware and software information from the NES/Famicom cartridge
+images stored in .NES files. Some of the library functionality is provided
+through functions in <CODE>NESCarts.c</CODE>, while the rest is implemented
+with macros in <CODE>NESCarts.h</CODE>.
+<P>
+  .NES files have 16-byte headers that contain cartridge information. To
+use the <I>NESCarts</I> library, you will have to load a header into
+memory and pass its address to the library functions.
+<P>
+  Some functions, such as <CODE>NES_CRC()</CODE>, work on the entire
+contents of the cartridge. For such functions, you will have to load
+entire cartridge image into memory and pass its address.
+<UL>
+<LI>Cartridge Properties
+<FONT COLOR="#000080"><PRE>
+NES_ROMSize(Header)   - ROM size in bytes
+NES_VROMSize(Header)  - VROM size in bytes
+NES_ROMBanks(Header)  - ROM size in 16kB ROM banks
+NES_VROMBanks(Header) - VROM size in 8kB VROM banks
+NES_Mapper(Header)    - Mapper type
+NES_4Screens(Header)  - TRUE if cartridge has no mirroring
+NES_Mirroring(Header) - TRUE for horizontal mirroring, FALSE for vertical
+NES_Battery(Header)   - TRUE if cartridge has a battery
+NES_Trainer(Header)   - TRUE if .NES file contains a trainer
+NES_VSSystem(Header)  - TRUE if it is a VS-System cartridge
+NES_CRC(Data,N)       - Compute CRC of N bytes of data
+</PRE></FONT>
+</UL>
+<HR>
+
+<A NAME="LABL"></A>
+<H2>Library for Handling SEGA 8Bit Cartridges (.SMS/.GG)</H2>
+<FONT COLOR="#000080"><H3><TT>
+<U>SMSCarts.h</U> SMSCarts.c
+</FONT></TT></H3>
+<CENTER><H6>
+Master System and GameGear are trademarks of SEGA.
+</H6></CENTER>
+<P>
+  The <I>SMSCarts</I> library is very similar to <I>GBCarts</I> and
+<I>NESCarts</I> libraries but works on the SEGA Master System and
+GameGear cartridges. Some of the library functionality is provided
+through functions in <CODE>SMSCarts.c</CODE>, while the rest is
+implemented as macros in <CODE>SMSCarts.h</CODE>.
+<P>
+  SEGA ROMs do not have definite headers. Instead, the cartridge
+information is stored in the middle or the end of the ROM. Therefore,
+all <I>SMSCarts</I> functions require a pointer to entire ROM. Functions
+that start with <CODE>SMS_</CODE> only work on MasterSystem ROMs (.SMS).
+Functions that start with <CODE>GG_</CODE> only work on GameGear ROMs
+(.GG).
+<P>
+  The <I>SMSCarts</I> functions are divided into several groups:
+<UL>
+<LI>Cartridge ROM Size
+<FONT COLOR="#000080"><PRE>
+SMS_ROMSize(Cart)     - MasterSystem ROM size in bytes
+GG_ROMSize(Cart)      - GameGear ROM size in bytes
+SMS_ROMPages(Cart)    - MasterSystem ROM size in 16kB pages
+GG_ROMPages(Cart)     - GameGear ROM size in 16kB pages
+</PRE></FONT>
+<LI>ROM Verification
+<FONT COLOR="#000080"><PRE>
+SMS_Valid(Cart)       - TRUE if the ROM contains SEGA's "magic string"
+SMS_CRC(Cart)         - Control sum stored in the ROM
+SMS_RealCRC(Cart,N)   - Real (computed) ROM control sum
+</PRE></FONT>
+<LI>Hardware Properties
+<FONT COLOR="#000080"><PRE>
+SMS_PartNo(Cart)      - Cartridge part number
+SMS_Config(Cart)      - Cartridge configuration
+SMS_Battery(Cart)     - TRUE is cartridge has a battery
+SMS_Combo(Cart)       - TRUE if cartridge contains several games
+SMS_3D(Cart)          - TRUE if cartridge requires 3D glasses
+</PRE></FONT>
+<LI>Software Properties
+<FONT COLOR="#000080"><PRE>
+SMS_Date(Cart)        - Year when the cartridge was released
+GG_Country(Cart)      - Country for which the cartridge was released
+GG_Japanese(Cart)     - TRUE for Japanese releases
+GG_European(Cart)     - TRUE for European releases
+GG_US(Cart)           - TRUE for US releases
+</PRE></FONT>
+</UL>
+<HR>
+
+<A NAME="LABM"></A>
+<H2>Library for Handling GameBoy Advance Cartridges (.GBA)</H2>
+<FONT COLOR="#000080"><H3><TT>
+<U>GBACarts.h</U> GBACarts.c
+</FONT></TT></H3>
+<CENTER><H6>
+GameBoy and GameBoy Advance are trademarks of Nintendo.
+</H6></CENTER>
+  The <I>GBACarts</I> library allows to verify ROM images of GameBoy
+Advance cartridges (.GBA) and obtain various information about the
+cartridge hardware and software. Some of the library functionality is
+provided through functions in <CODE>GBACarts.c</CODE>, while the rest
+is implemented with macros in <CODE>GBACarts.h</CODE>.
+<P>
+  Same as GameBoy ROMs, GameBoy Advance ROMs contain all the useful
+information about the cartridge in a 512-byte header. To use the
+<I>GBACarts</I> library, you will have to load this header into
+memory and pass its address to the library functions.
+<P>
+  Some functions, such as <CODE>GBA_RealCRC()</CODE>, work on the
+entire contents of the ROM. For such functions, you will have to
+load entire ROM into memory and pass its address.
+<P>
+  The <I>GBACarts</I> functions are divided into several groups:
+<UL>
+<LI>ROM Verification
+<FONT COLOR="#000080"><PRE>
+GBA_Valid(Header)     - TRUE if ROM contains the "magic number"
+GBA_CMP(Header)       - Complement byte stored in the header
+GBA_CRC(Header)       - Control sum stored in the header (<U>not used</U>)
+GBA_RealCRC(Data,N)   - Real (computed) ROM control sum
+GBA_RealCMP(Header)   - Real (computed) ROM complement byte
+</PRE></FONT>
+<LI>Hardware Properties
+<FONT COLOR="#000080"><PRE>
+GBA_UnitID(Header)    - Unit ID
+GBA_DevType(Header)   - Device type
+</PRE></FONT>
+<LI>Software Properties
+<FONT COLOR="#000080"><PRE>
+GBA_GameID(Header)    - Game ID
+GBA_MakerID(Header)   - Producer's ID
+GBA_Title(Header)     - Game title, as a string (returns <U>internal buffer</U>)
+GBA_Maker(Header)     - Game producer, as a string (if known)
+GBA_Version(Header)   - Software version
+GBA_Start(Header)     - Starting address of the executable code
+GBA_Japanese(Header)  - TRUE for Japanese releases
+GBA_European(Header)  - TRUE for European (multilingual) releases
+GBA_American(Header)  - TRUE for US releases
+GBA_German(Header)    - TRUE for German releases
+</PRE></FONT>
+</UL>
+<HR>
+
+<A NAME="LABD"></A>
+<H2>Sound Playback and MIDI Logging Library</H2>
+<FONT COLOR="#000080"><H3><TT>
+<U>Sound.h</U> Sound.c SndUnix.c SndUnixT.c SndMSDOS.c SndWin.c MIDIFreq.h FMFreq.h
+</FONT></TT></H3>
+  <I>EMULib</I>'s unified sound library provides sound chip emulation
+modules with sound generation capabilities on Unix, MS Windows, and MSDOS
+platforms. The library also allows to record polyphonic single-track MIDI
+files (.MID) based on the melodic sound data. Thus, one can use the
+library for saving soundtrack from an emulator or converting various
+melodic music formats to the MIDI format.
+<P>
+To make use of the sound library, your program should <U>at least</U>
+<CODE>#include Sound.h</CODE> file and link with the <CODE>Sound.c</CODE>
+file. This will provide you with the minimal platform-independent features,
+such as MIDI logging. To get the sound generation features, you will need
+to <CODE>#define UNIX|MSDOS|WINDOWS</CODE> and link with one of the
+platform-dependent files: <CODE>SndUnix.c</CODE>, <CODE>SndUnixT.c</CODE>,
+<CODE>SndMSDOS.c</CODE>, or <CODE>SndWin.c</CODE>. <CODE>SndUnixT.c</CODE>
+uses <I>POSIX Threads</I>, while <CODE>SndUnix.c</CODE> is thread-free at
+the cost of limited sample playback capabilities.
+<P>
+Your typical program has to start by initializing the sound library in
+one of the following ways:
+<UL>
+<LI><B>In Unix:</B>
+<FONT COLOR="#000080"><PRE>Result = InitSound(Rate,Verbose);</PRE></FONT>
+where <CODE>Rate</CODE> is the wave synthesis rate in the
+<CODE>8000Hz..44100Hz</CODE> range (or <CODE>0</CODE> for silence) and
+<CODE>Verbose</CODE> should be set to <CODE>!=0</CODE> if you wish to print
+the debugging messages. The function will return <CODE>Result!=0</CODE>
+on success or <CODE>Result==0</CODE> on failure.
+<P>
+<LI><B>In MSDOS:</B>
+<FONT COLOR="#000080"><PRE>Result = InitSound(Rate);</PRE></FONT>
+where <CODE>Rate</CODE> is the <I>SoundBlaster</I> wave synthesis rate
+in the <CODE>8000Hz..44100Hz</CODE> range, <CODE>1</CODE> for melodic
+<I>Adlib</I> sound, or <CODE>0</CODE> for silence. The function will
+return <CODE>Result!=0</CODE> on success or <CODE>Result==0</CODE> on
+failure.
+<P>
+<LI><B>In Windows:</B>
+<FONT COLOR="#000080"><PRE>Result = InitSound(hInst,Rate,Buffers);</PRE></FONT>
+where <CODE>hInst</CODE> is the current application instance.
+<CODE>Rate</CODE> is the <CODE>waveOut</CODE> synthesis rate in the
+<CODE>8000Hz..44100Hz</CODE> range, <CODE>1</CODE> for
+<CODE>midiOut</CODE>, or <CODE>0</CODE> for silence. <CODE>Buffers</CODE>
+is the number of wave synthesis buffers, in the
+<CODE>2..SND_BUFFERS</CODE> range. The function will return
+<CODE>Result!=0</CODE> on success or <CODE>Result==0</CODE> on failure.
+</UL>
+If you only expect to use the MIDI logging capabilities without producing
+the actual sound, you do not need to call <CODE>InitSound()</CODE> at all.
+You will need to call the <CODE>InitMIDI()</CODE> function described later
+though.
+<P>
+After you initialize the library, set the master volume and the active
+channels with the
+<FONT COLOR="#000080"><PRE>SetChannels(MasterVolume,ChannelMask);</PRE></FONT>
+call. The <CODE>MasterVolume</CODE> changes in the <CODE>0..255</CODE>
+range and affects all channels. The <CODE>ChannelMask</CODE> has bits
+for up to 16 channels, depending on the platform (see the
+<CODE>SND_CHANNELS</CODE> macro). You can now set sound types for
+individual channels with the
+<FONT COLOR="#000080"><PRE>SetChannels(Channel,SoundType);</PRE></FONT>
+call. <CODE>SoundType</CODE> may take following values:
+<FONT COLOR="#000080"><PRE>
+SND_MELODIC      -  "Normal" melodic sound (rectangular waveform).
+SND_NOISE        -  White noise.
+SND_MIDI|PatchN  -  MIDI instrument &lt;PatchN&gt; (MIDI and midiOut only,
+                    reverts to SND_MELODIC on other platforms).
+</PRE></FONT>
+<P>
+The actual sound is generated with the following self-explanatory function
+call:
+<FONT COLOR="#000080"><PRE>Sound(Channel,Frequency,Volume);</PRE></FONT>
+<CODE>Frequency</CODE> is given in hertz and <CODE>Volume</CODE> varies in
+the <CODE>0..255</CODE> range. There are also two convinient calls that
+only change the frequency or the volume:
+<FONT COLOR="#000080"><PRE>
+SetFreq(Channel,Frequency);
+SetVolume(Channel,Volume);
+</PRE></FONT>
+They both get converted to <CODE>Sound()</CODE> calls anyway. In addition
+to the predefined sound types, the sound library allows to play arbitrary
+waveforms on the platforms that use wave synthesis. To set the channel to
+a waveform, call the following function:
+<FONT COLOR="#000080"><PRE>SetWave(Channel,Data,Length,Rate);</PRE></FONT>
+Here, <CODE>Data</CODE> is an array of <CODE>Length</CODE> <U>signed</U>
+bytes defining the sound sample. <CODE>Rate</CODE> defines the frequency
+at which the sample is played. Usually, you will have to pass
+<CODE>Rate=0</CODE> to use the sample as a "musical instrument".
+Platforms that do not support the <CODE>SetWave()</CODE> will default to
+the <CODE>SND_MELODIC</CODE> sound.
+<P>
+Certain platforms (such as Windows <CODE>midiOut</CODE>) also support
+drums. You can hit a drum by calling
+<FONT COLOR="#000080"><PRE>Drum(DrumType);</PRE></FONT>
+where <CODE>DrumType</CODE> takes one of the these values:
+<FONT COLOR="#000080"><PRE>
+DRM_CLICK        -  Short click (useful for simulating key clicks).
+DRM_MIDI|DrumN   -  MIDI drum &lt;DrumN&gt; (MIDI and midiOut only).
+</PRE></FONT>
+Platforms that do not support drums will ignore <CODE>Drum()</CODE>
+calls.
+<P>
+Let us now look at the MIDI logging facilities. Before recording anything,
+you have to tell the library which MIDI file to use. This is done with
+<FONT COLOR="#000080"><PRE>InitMIDI(FileName);</PRE></FONT>
+Don't be afraid to call <CODE>InitMIDI()</CODE> multiple times: the
+library will close any currently open MIDI file and open a new one.
+You can control the recording of this MIDI file by calling
+<FONT COLOR="#000080"><PRE>Status = MIDILogging(Switch);</PRE></FONT>
+where <CODE>Switch</CODE> is one of
+<FONT COLOR="#000080"><PRE>
+MIDI_ON          - Start logging.
+MIDI_OFF         - Stop logging.
+MIDI_TOGGLE      - Toggle logging on/off.
+MIDI_QUERY       - Don't touch anything, just return the status.
+</PRE></FONT>
+In all cases, <CODE>MIDILogging()</CODE> returns <CODE>Status!=0</CODE>
+if the logging is active or <CODE>Status==0</CODE> otherwise. The MIDI
+logging applies to all melodic sound and drums, but it will not preserve
+custom waveforms set with the <CODE>SetWave()</CODE> calls due to the
+natural limitations of the MIDI standard.
+<P>
+<U>Finally</U>, on all platforms, the sound library is shut down in the
+same way:
+<FONT COLOR="#000080"><PRE>TrashSound();</PRE></FONT>
+<HR>
+
+<A NAME="LABK"></A>
+<H2>8255 Programmable Parallel Interface</H2>
+<FONT COLOR="#000080"><H3><TT>
+<U>I8255.h</U> I8255.c
+</FONT></TT></H3>
+<I>To be documented.</I>
+<HR>
+
+<A NAME="LABN"></A>
+<H2>93cXX EEPROM with Serial Access</H2>
+<FONT COLOR="#000080"><H3><TT>
+<U>C93XX.h</U> C93XX.c
+</FONT></TT></H3>
+<I>To be documented.</I>
+<HR>
+
+<A NAME="LABA"></A>
+<H2>SN76489 Programmable Sound Generator</H2>
+<FONT COLOR="#000080"><H3><TT>
+<U>sn76489.h</U> SN76489.c
+</FONT></TT></H3>
+  This is an emulation for the <I>76489 Programmable Sound Generator</I>
+(PSG) chip produced by National Semiconductors and Intel. This emulation
+uses the <A HREF="#LABD"><I>Sound</I></A> library to play sounds on the
+four PSG channels. Start by creating the PSG context:
+<FONT COLOR="#000080"><PRE>SN76489 PSG;</PRE></FONT>
+This structure contains all PSG registers and other data describing PSG
+state. Now, initialize the <CODE>PSG</CODE> structure with
+<FONT COLOR="#000080"><PRE>Reset76489(&PSG,FirstChannel);</PRE></FONT>
+After that, you can write byte values into PSG chip by issuing
+<FONT COLOR="#000080"><PRE>Write76489(&PSG,Value);</PRE></FONT>
+calls. These writes will be converted to the <CODE>Sound()</CODE> calls
+on <U>four</U> sound channels starting from the <CODE>FirstChannel</CODE>.
+There are two different ways to issue these <CODE>Sound()</CODE> calls
+though:
+<P>
+<UL>
+<LI>You can choose to call <CODE>Sound()</CODE> immediately when
+    a value is written into the PSG chip. To do this, call
+    <FONT COLOR="#000080"><PRE>Sync76489(&PSG,SN76489_ASYNC);</PRE></FONT>
+    after resetting the PSG.
+<P>
+<LI>It is usually more efficient to accumulate PSG state changes and
+    issue <CODE>Sound()</CODE> calls about 50-60 times a second, at
+    the end of a video frame. To do this, call
+    <FONT COLOR="#000080"><PRE>Sync76489(&PSG,SN76489_SYNC);</PRE></FONT>
+    after resetting the PSG. Now, every time you want to put accumulated
+    changes into effect, call
+    <FONT COLOR="#000080"><PRE>Sync76489(&PSG,SN76489_FLUSH);</PRE></FONT>
+</UL>
+<P>
+Additionally, you may want to simulate the noise channel by hitting drums
+when you call <CODE>Sync76489()</CODE>. To simulate noise with drums, call
+<FONT COLOR="#000080"><PRE>Sync76489(&PSG,SN76489_FLUSH|SN76489_DRUMS);</PRE></FONT>
+<HR>
+
+<A NAME="LABI"></A>
+<H2>AY8910/8912 Programmable Sound Generator</H2>
+<FONT COLOR="#000080"><H3><TT>
+<U>AY8910.h</U> AY8910.c
+</FONT></TT></H3>
+<I>To be documented.</I>
+<HR>
+
+<A NAME="LABJ"></A>
+<H2>YM2413 Programmable Sound Generator</H2>
+<FONT COLOR="#000080"><H3><TT>
+<U>YM2413.h</U> YM2413.c MIDIFreq.h
+</FONT></TT></H3>
+<I>To be documented.</I>
+<HR>
+
+<A NAME="LABC"></A>
+<H2>tms9918/9928 Video Processor</H2>
+<FONT COLOR="#000080"><H3><TT>
+<U>tms9918.h</U> tms9918.c DRV9918.c
+</FONT></TT></H3>
+<I>To be documented.</I>
+<HR>
+
+<A NAME="LABF"></A>
+<H2>Miscellaneous Functions for MSDOS</H2>
+<FONT COLOR="#000080"><H3><TT>
+<U>LibMSDOS.h</U> LibMSDOS.c
+</FONT></TT></H3>
+<I>To be documented.</I>
+<HR>
+
+<DT>
+<A NAME="LABG">
+<H2>Miscellaneous Functions for Unix</H2>
+</A>
+<FONT COLOR="#000080"><H3><TT>
+<U>LibUnix.h</U> LibUnix.c
+</FONT></TT></H3>
+<I>To be documented.</I>
+<HR>
+
+<A NAME="LABH"></A>
+<H2>Miscellaneous Functions for Windows</H2>
+<FONT COLOR="#000080"><H3><TT>
+<U>LibWin.h</U> LibWin.c
+</FONT></TT></H3>
+<I>To be documented.</I>
+<HR>
+
+<HR>
+<I>
+&copy;2001 Copyright by
+<A HREF="http://www.komkon.org/fms/">Marat Fayzullin</A>
+</I>
+</BODY>
+</HTML>

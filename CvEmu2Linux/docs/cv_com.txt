@@ -1,0 +1,160 @@
+
+TODO:   gap fa00..fd80	(codice e dati)
+        gap fe83..ff66
+
+0000F84B: A2 07		ldx #$07
+0000F84D: BD F0 BF      lda $BFF0,x             /!? nella della cartuccia?
+0000F850: 20 1F FE      jsr $FE1F               /(*)
+0000F853: CA		dex
+0000F854: 10 F7		bpl $0000F84D
+0000F856: 60            rts
+
+0000F85C: A2 FF         ldx #$FF
+0000F85E: 4C 9E FD      jmp $FD9E               /[*]
+
+0000f880 - 0000f9ff:    caratteri grafici
+
+0000FD82: 8D 00 30      sta $3000               /no inline,please...
+0000FD85: 60		rts
+
+0000FD9E: A0 00		ldy #$00
+0000FDA0: 85 06		sta $06
+0000FDA2: 86 07		stx $07
+0000FDA4: B1 06		lda ($06),y
+0000FDA6: AA		tax
+0000FDA7: C8		iny
+0000FDA8: B1 06         lda ($06),y
+0000FDAA: 20 1F FE      jsr $FE1F               /(*)
+0000FDAD: C8		iny
+0000FDAE: B1 06		lda ($06),y
+0000FDB0: AA		tax
+0000FDB1: C8		iny
+0000FDB2: B1 06		lda ($06),y
+0000FDB4: 85 09		sta $09
+0000FDB6: C8		iny
+0000FDB7: B1 06		lda ($06),y
+;
+0000FDB9: 20 82 FD      jsr $FD82               /(*)
+0000FDBC: CA		dex
+0000FDBD: D0 FA		bne $0000FDB9
+0000FDBF: C6 09		dec $09
+0000FDC1: 10 F6		bpl $0000FDB9
+0000FDC3: 60		rts
+
+
+0000FDD3: 8D 01 30      sta $3001               /Aiuto, l'inline!!
+0000FDD6: 60		rts
+
+
+0000FE1F: 08		php
+0000FE20: 78            sei                     /no IRQ
+0000FE21: 20 D3 FD      jsr $FDD3               /(*)
+0000FE24: 8A		txa
+0000FE25: 49 80		eor #$80
+0000FE27: 20 D3 FD      jsr $FDD3               /(*)
+0000FE2A: 28            plp                     /eventualm. ripristina l'IRQ
+0000FE2B: 60		rts
+
+
+IRQ VECTOR
+
+0000FE2C: 6C FE BF      jmp ($BFFE)             /cartuccia?
+
+
+0000FE2F: A2 00         ldx #$00                /delay?
+0000FE31: 8A		txa
+0000FE32: 95 00         sta $00,x
+0000FE34: E8		inx
+0000FE35: D0 FB		bne $0000FE32
+0000FE37: 60		rts
+
+
+0000FE38: A2 C6		ldx #$C6
+0000FE3A: A9 00		lda #$00
+0000FE3C: 20 1F FE      jsr $FE1F               /(*)
+0000FE3F: A2 00		ldx #$00
+0000FE41: BD 00 F8	lda $F800,x
+0000FE44: 20 82 FD      jsr $FD82               /(*)
+0000FE47: E8		inx
+0000FE48: D0 F7		bne $0000FE41
+;
+0000FE4A: BD 00 F9	lda $F900,x
+0000FE4D: 20 82 FD      jsr $FD82               /(*)
+0000FE50: E8		inx
+0000FE51: D0 F7		bne $0000FE4A
+0000FE53: 60		rts
+
+
+0000FE54: 20 67 FE      jsr $FE67               /(*) HW/w
+0000FE57: A2 03         ldx #$03
+0000FE59: BD 63 FE	lda $FE63,x
+0000FE5C: 20 77 FE      jsr $FE77               /(*) more HW/w
+0000FE5F: CA		dex
+0000FE60: 10 F7         bpl $0000FE59           /9f,bf,df,ff (?)
+0000FE62: 60		rts
+;
+0000FE63: FF            .db $FF                 /data
+0000FE64: DF            .db $DF
+0000FE65: BF		.db $BF
+0000FE66: 9F		.db $9F
+;
+0000FE67: A9 22		lda #$22
+0000FE69: 8D 03 10      sta $1003               /HW? (sound?)
+0000FE6C: A9 FF		lda #$FF
+0000FE6E: 8D 02 10	sta $1002
+0000FE71: A9 26		lda #$26
+0000FE73: 8D 03 10	sta $1003
+0000FE76: 60		rts
+
+
+0000FE77: 8D 02 10	sta $1002
+0000FE7A: AD 03 10      lda $1003               /busy flag?
+0000FE7D: 10 FB		bpl $0000FE7A
+0000FE7F: AD 02 10      lda $1002               /lost
+0000FE82: 60		rts
+
+
+>> RESET VECTOR (& NMI)
+
+[entry point]
+
+0000FF66: 78            sei                     /disable IRQ
+0000FF67: D8            cld                     /no BCD
+;
+0000FF68: A2 40         ldx #$40                / Delay 300~ msec
+0000FF6A: 88            dey                     / (si aspetta che Y sia zero?
+0000FF6B: D0 FD         bne $0000FF6A           / 'sti japponesi...)
+0000FF6D: CA		dex
+0000FF6E: D0 FA		bne $0000FF6A
+;
+0000FF70: AD 01 20      lda $2001               /HW?
+0000FF73: 20 54 FE      jsr $FE54               /(*) HW?
+0000FF76: 20 4B F8      jsr $F84B               /(*) HW?
+;
+0000FF79: A2 05		ldx #$05
+0000FF7B: CA		dex
+0000FF7C: F0 20		beq $0000FF9E
+0000FF7E: BD FB BF	lda $BFFB,x
+0000FF81: DD FF 01	cmp $01FF,x
+0000FF84: F0 F5		beq $0000FF7B
+;
+0000FF86: 20 2F FE      jsr $FE2F               /(*) delay?
+0000FF89: A9 F4		lda #$F4
+0000FF8B: 20 5C F8      jsr $F85C               /(*)
+0000FF8E: 20 38 FE      jsr $FE38               /(*)
+0000FF91: A2 03		ldx #$03
+;
+0000FF93: BD FC BF	lda $BFFC,x
+0000FF96: 9D 00 02	sta $0200,x
+0000FF99: CA		dex
+0000FF9A: 10 F7		bpl $0000FF93
+;
+0000FF9C: 86 02		stx $02
+0000FF9E: 6C FC BF      jmp ($BFFC)             /nella cartuccia?
+
+0000FFC4: 'HIHIGH SCORE2UP1UP GAME OVER'	capovolto e displaced 0x60
+
+0000FFFA: NMI
+0000FFFC: RESET
+0000FFFE: IRQ
+

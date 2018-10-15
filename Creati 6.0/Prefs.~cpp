@@ -1,0 +1,90 @@
+//---------------------------------------------------------------------------
+#include <vcl\vcl.h>
+#pragma hdrstop
+
+#include "Prefs.h"
+#include "SDIMain.h"
+#include "vcl/registry.hpp"
+//---------------------------------------------------------------------------
+#pragma resource "*.dfm"
+TPreferences *Preferences;
+
+//---------------------------------------------------------------------------
+__fastcall TPreferences::TPreferences(TComponent* Owner)
+	: TForm(Owner)
+{
+
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TPreferences::FormClose(TObject *Sender,
+      TCloseAction &Action)
+{
+SDIAppForm->CanModify=ModifyCheckBox->Checked;
+SDIAppForm->SaveLog=LogCheckBox->Checked;
+SDIAppForm->Memo1->ReadOnly=!ModifyCheckBox->Checked;
+SDIAppForm->LogFile=Edit1->Text;
+SDIAppForm->ProgressiveName=RadioButton2->Checked;
+SDIAppForm->SysTray=SysTrayCheckBox->Checked;
+
+ShowWindow(Application->Handle, SDIAppForm->SysTray?SW_HIDE:SW_SHOW);
+
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TPreferences::FormShow(TObject *Sender)
+{
+ModifyCheckBox->Checked= SDIAppForm->CanModify;
+LogCheckBox->Checked   = SDIAppForm->SaveLog;
+Button2->Enabled = LogCheckBox->Checked;
+Edit1->Enabled = LogCheckBox->Checked;
+Edit1->Text=SDIAppForm->LogFile;
+SysTrayCheckBox->Checked=SDIAppForm->SysTray;
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TPreferences::ClosePrefsBtnClick(TObject *Sender)
+{
+ Close();
+}
+//---------------------------------------------------------------------------
+
+
+void __fastcall TPreferences::Button2Click(TObject *Sender)
+{
+try
+{
+ SaveLog->Execute();
+
+ SDIAppForm->LogFile=SaveLog->FileName;
+ Edit1->Text=SaveLog->FileName;
+}
+
+catch ( ... )
+{
+ SDIAppForm->LogFile="Log.txt";
+}
+ 
+
+
+}
+//---------------------------------------------------------------------------
+
+void __fastcall TPreferences::LogCheckBoxClick(TObject *Sender)
+{
+ Button2->Enabled = LogCheckBox->Checked;
+ Edit1->Enabled = LogCheckBox->Checked;
+}
+
+//---------------------------------------------------------------------------
+
+void __fastcall TPreferences::Edit1KeyDown(TObject *Sender, WORD &Key,
+      TShiftState Shift)
+{
+ if (Key==VK_RETURN) Close();
+}
+//---------------------------------------------------------------------------
+
+
+
+

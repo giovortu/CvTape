@@ -1,0 +1,152 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!-- C++Builder XML Project -->
+<PROJECT>
+  <MACROS>
+    <VERSION value="BCB.06.00"/>
+    <PROJECT value="CvTape6.exe"/>
+    <OBJFILES value="CvTape6.obj SDIMain.obj About.obj Prefs.obj Decode.obj 
+      ..\MyClass\WaveFile.obj Advance.obj WaveInfo.obj Easter.obj TipOfDay.obj"/>
+    <RESFILES value="SDIAPP.res"/>
+    <IDLFILES value=""/>
+    <IDLGENFILES value=""/>
+    <DEFFILE value=""/>
+    <RESDEPEN value="$(RESFILES) SDIMain.dfm About.dfm Prefs.dfm Advance.dfm WaveInfo.dfm 
+      Easter.dfm TipOfDay.dfm"/>
+    <LIBFILES value=""/>
+    <LIBRARIES value="bcbsmp.lib vcldbx.lib bdertl.lib vcldb.lib dbrtl.lib vclx.lib vcl.lib 
+      rtl.lib"/>
+    <SPARELIBS value="rtl.lib vcl.lib vclx.lib dbrtl.lib vcldb.lib bdertl.lib vcldbx.lib 
+      bcbsmp.lib"/>
+    <PACKAGES value="rtl.bpi vcl.bpi"/>
+    <PATHCPP value=".;..\MyClass"/>
+    <PATHPAS value=".;"/>
+    <PATHRC value=".;"/>
+    <PATHASM value=".;"/>
+    <DEBUGLIBPATH value="$(BCB)\lib\debug"/>
+    <RELEASELIBPATH value="$(BCB)\lib\release"/>
+    <LINKER value="ilink32"/>
+    <USERDEFINES value=""/>
+    <SYSDEFINES value="NO_STRICT"/>
+    <MAINSOURCE value="CvTape6.cpp"/>
+    <INCLUDEPATH value="..\MyClass;&quot;d:\builder projects\myclass&quot;;&quot;d:\programmi\borland\cbuilder\projects\builder projects\myclass&quot;;&quot;$(BCB)\projects\builder projects\myclass&quot;;$(BCB)\projects;$(BCB)\include;$(BCB)\include\vcl"/>
+    <LIBPATH value="$(BCB)\Projects\Lib;..\MyClass;&quot;d:\builder projects\myclass&quot;;&quot;d:\programmi\borland\cbuilder\projects\builder projects\myclass&quot;;&quot;$(BCB)\projects\builder projects\myclass&quot;;$(BCB)\projects;$(BCB)\lib\obj;$(BCB)\lib"/>
+    <WARNINGS value="-w-par"/>
+    <WARNOPTSTR value=""/>
+    <OTHERFILES value=""/>
+  </MACROS>
+  <OPTIONS>
+    <IDLCFLAGS value="-I..\MyClass -I&quot;d:\builder projects\myclass&quot; 
+      -I&quot;d:\programmi\borland\cbuilder\projects\builder projects\myclass&quot; 
+      -I&quot;$(BCB)\projects\builder projects\myclass&quot; -I$(BCB)\projects 
+      -I$(BCB)\include -I$(BCB)\include\vcl -src_suffix cpp -boa"/>
+    <CFLAG1 value="-O2 -H=C:\Programmi\Borland\CBuilder5\Lib\vcld.csm -Vx -Ve -ff -X- -a4 -b- 
+      -k- -vi -c  -tWM"/>
+    <CFLAG2 value=""/>
+    <CFLAG3 value=""/>
+    <PFLAGS value="-AWinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE 
+      -$Y- -$L- -$D- -$A8 -JPHNV -M -JPHNE"/>
+    <RFLAGS value=""/>
+    <AFLAGS value="/mx /w0 /zn"/>
+    <LFLAGS value="-D&quot;&quot; -aa -Tpe -x"/>
+    <IFLAGS value=""/>
+    <OTHERFILES value=""/>
+  </OPTIONS>
+  <LINKER>
+    <ALLOBJ value="c0w32.obj sysinit.obj $(OBJFILES)"/>
+    <ALLRES value="$(RESFILES)"/>
+    <ALLLIB value="$(LIBFILES) $(LIBRARIES) import32.lib cp32mt.lib"/>
+    <OTHERFILES value=""/>
+  </LINKER>
+  <FILELIST>
+      <FILE FILENAME="CvTape6.cpp" FORMNAME="" UNITNAME="CvTape6" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="SDIMain.cpp" FORMNAME="SDIAppForm" UNITNAME="SDIMain" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="About.cpp" FORMNAME="AboutBox" UNITNAME="About" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="SDIAPP.res" FORMNAME="" UNITNAME="SDIAPP" CONTAINERID="ResTool" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="Prefs.cpp" FORMNAME="Preferences" UNITNAME="Prefs" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="Decode.cpp" FORMNAME="" UNITNAME="Decode" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="..\MyClass\WaveFile.cpp" FORMNAME="" UNITNAME="WaveFile" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="Advance.cpp" FORMNAME="Status" UNITNAME="Advance" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="WaveInfo.cpp" FORMNAME="WaveInfoForm" UNITNAME="WaveInfo" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="Easter.cpp" FORMNAME="Author" UNITNAME="Easter" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+      <FILE FILENAME="TipOfDay.cpp" FORMNAME="Tips" UNITNAME="TipOfDay" CONTAINERID="CCompiler" DESIGNCLASS="" LOCALCOMMAND=""/>
+  </FILELIST>
+  <BUILDTOOLS>
+  </BUILDTOOLS>
+
+  <IDEOPTIONS>
+[Version Info]
+IncludeVerInfo=0
+AutoIncBuild=1
+MajorVer=4
+MinorVer=0
+Release=2
+Build=501
+Debug=0
+PreRelease=0
+Special=0
+Private=0
+DLL=0
+Locale=1033
+CodePage=1252
+
+[Version Info Keys]
+CompanyName=
+FileDescription=
+FileVersion=4.0.2.501
+InternalName=
+LegalCopyright=
+LegalTrademarks=
+OriginalFilename=
+ProductName=
+ProductVersion=1.0.0.0
+
+[Excluded Packages]
+i:\programmi\borland\cbuilder6\Bin\DBWEBXPRT.BPL=Borland Web Wizard Package
+
+[HistoryLists\hlIncludePath]
+Count=1
+Item0=..\MyClass;d:\builder projects\myclass\;d:\programmi\borland\cbuilder\projects\builder projects\myclass\;$(BCB)\projects\builder projects\myclass;$(BCB)\projects;$(BCB)\include;$(BCB)\include\vcl
+
+[HistoryLists\hlLibraryPath]
+Count=1
+Item0=$(BCB)\Projects\Lib;..\MyClass;d:\builder projects\myclass\;d:\programmi\borland\cbuilder\projects\builder projects\myclass\;$(BCB)\projects\builder projects\myclass;$(BCB)\projects;$(BCB)\lib\obj;$(BCB)\lib
+
+[HistoryLists\hlConditionals]
+Count=1
+Item0=_DEBUG
+
+[HistoryLists\hlUnitAliases]
+Count=1
+Item0=WinTypes=Windows;WinProcs=Windows;DbiTypes=BDE;DbiProcs=BDE;DbiErrs=BDE
+
+[Debugging]
+DebugSourceDirs=
+
+[Parameters]
+RunParams=
+Launcher=
+UseLauncher=0
+DebugCWD=
+HostApplication=
+RemoteHost=
+RemotePath=
+RemoteLauncher=
+RemoteCWD=
+RemoteDebug=0
+
+[Compiler]
+ShowInfoMsgs=1
+LinkDebugVcl=0
+LinkCGLIB=0
+
+[CORBA]
+AddServerUnit=1
+AddClientUnit=1
+PrecompiledHeaders=1
+
+[Language]
+ActiveLang=
+ProjectLang=
+RootDir=
+  </IDEOPTIONS>
+</PROJECT>

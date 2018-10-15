@@ -1,0 +1,30 @@
+
+
+  RAM 4108 / 4116 Pinout
+  ----------------------
+
+  Used in PET 2001N and following CBM 3000er machines.
+ 
+
+      (-5V=) VBB 1-|--v--|-16 VSS (0V ground)       
+(Data Input)     2-|     |-15 CAS
+               W 3-|     |-14 Q   (Data Output)
+             RAS 4-|     |-13 A6
+              A0 5-|     |-12 A3
+              A2 6-|     |-11 A4
+              A1 7-|     |-10 A5
+     (+12V=) VDD 8-|_____|-9  VCC (+5V=)
+             
+
+
+
+  4108 -  8,192-Bit Dynamic Random Access Memory
+  4116 - 16,384-Bit Dynamic Random Access Memory
+  
+
+ 
+  4116 : indirizzi multiplexati. Con CAS e RAS multiplexo i 7 indirizzi ottenendone 14
+         2^14=16384; 
+         
+         Ras->Msb
+         Cas->Lsb

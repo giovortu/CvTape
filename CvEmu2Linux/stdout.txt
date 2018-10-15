@@ -1,0 +1,6 @@
+
+No argument passed on command line!
+
+Usage:
+F:\Programmazione\CodeBlock\Projects\CvEmu2Linux\CvEmu2.exe romname [ biosname ]
+
